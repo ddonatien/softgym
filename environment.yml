@@ -1,8 +1,9 @@
-name: softgym
+name: defo
 channels:
   - defaults
 dependencies:
-  - numpy=1.17.2
+  - python=3.8
+  - numpy=1.18
   - imageio=2.6.1
   - glob2=0.7
   - cmake=3.14.0
@@ -10,13 +11,13 @@ dependencies:
   - click
   - matplotlib
   - joblib
-  - Pillow=6.1
-  - plotly=2.0
+  - Pillow=7
+  - plotly=3
   - pip:
     - gtimer
     - gym==0.14.0
     - moviepy
-    - opencv-python==4.1.1.26
+    - opencv-python==4.1.2.30
     - Shapely==1.6.4.post2
     - pyquaternion==0.9.5 
     - sk-video==1.1.10
