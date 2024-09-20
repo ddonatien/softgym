@@ -2,8 +2,12 @@ cd PyFlex/bindings
 rm -rf build
 mkdir build
 cd build
- 
-export CUDA_BIN_PATH=/usr/local/cuda-9.1
+
+if [[ $(hostname) = *"franklin"* ]]; then
+  export  CUDA_BIN_PATH=/mnt/beegfs/cluster1/applications/libs/nvidia/cuda-12.1.1
+else
+  export CUDA_BIN_PATH=/usr/local/cuda-9.1
+fi
 
 cmake -DPYBIND11_PYTHON_VERSION=3.6 ..
 make -j
