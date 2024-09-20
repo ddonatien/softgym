@@ -4,7 +4,7 @@ mkdir build
 cd build
 
 if [[ $(hostname) = *"franklin"* ]]; then
-  export CUDA_BIN_PATH=usr/local/cuda-12.1
+  export CUDA_BIN_PATH=/usr/local/cuda-12.1
 else
   export CUDA_BIN_PATH=/usr/local/cuda-9.1
 fi
