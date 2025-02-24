@@ -369,3 +369,71 @@ class PickerQPG(PickerPickPlace):
         model_action, curr_pos = super().get_model_action(en, curr_pos)
         model_actions.extend(model_action)
         return model_actions, curr_pos
+
+class PickAndPlacePos(PickerQPG):
+    def __init__(self, image_size, cam_pos, cam_angle, full=True, **kwargs):
+        super().__init__(image_size, cam_pos, cam_angle, full=full, **kwargs)
+        space_low = np.array([-1., -1., -1., -1.] * self.num_picker)  # [u1, v1, u2, v2]
+        space_high = np.array([1., 1., 1., 1.] * self.num_picker)
+        self.action_space = (0, Box(space_low, space_high, dtype=np.float32))
+
+    def step(self, action):
+        """ Action is in 6D: (u1,v1) the start of the pick in image coordinate or (x1, y1, z1);
+        (u2, v2) the start of the place in image coordinate
+        last component is switch between uv or xyz"""
+        if action[-1] < 0:
+            u1, v1 = action[:2]
+            u1 = ((u1 + 1.) * 0.5) * self.image_size[0]
+            v1 = ((v1 + 1.) * 0.5) * self .image_size[1]
+            x1, y1, z1 = super()._get_world_coor_from_image(u1, v1)
+            if self.cam_pos[1] == 0.5:
+                y1 += 0.03
+            else:
+                y1 += 0.02
+        else:
+            x1, y1, z1 = action[:3]
+        # print(x1, z1)
+
+        u2, v2 = action[3:5]
+        u2 = ((u2 + 1.) * 0.5) * self.image_size[0]
+        v2 = ((v2 + 1.) * 0.5) * self.image_size[1]
+        x2, y2, z2 = super()._get_world_coor_from_image(u2, v2)
+        y2 += 0.07
+        # print(x2, z2)
+
+        # a set of checkpoints along pick and place
+        st_high = np.array([x1, 0.13, z1, 0])
+        st = np.array([x1, y1, z1, 0])
+        en_high = np.array([x2, 0.13, z2, 1])
+        en = np.array([x2, y2, z2, 1])
+
+        self.not_on_cloth = True
+
+        if self.full:
+            self.total_steps += PickerPickPlace.step(self, st_high)
+            self.total_steps += PickerPickPlace.step(self, st)
+            st_high[3] = 1   # pick cloth
+            self.total_steps += PickerPickPlace.step(self, st_high)
+            self.total_steps += PickerPickPlace.step(self, en_high)
+            self.total_steps += PickerPickPlace.step(self, en)
+            en[3] = 0   # Drop cloth
+            # Unpick all particles
+            _, particle_pos = self._get_pos()
+            new_particle_pos = particle_pos.copy()
+            for i in range(self.num_picker):
+                if self.picked_particles[i] is not None:
+                    new_particle_pos[self.picked_particles[i], 3] = self.particle_inv_mass[self.picked_particles[i]]
+                    self.picked_particles[i] = None
+            pyflex.set_positions(new_particle_pos)
+            for i in range(20):
+                pyflex.step()
+                if self.env is not None and self.env.recording:
+                    self.env.video_frames.append(self.env.render(mode='rgb_array'))
+            self.total_steps += 20
+        else:
+            raise NotImplementedError
+        return self.total_steps
+
+    def hide(self):
+        hide_place = np.array([1., 0.5, 1., 0])
+        PickerPickPlace.step(self, hide_place)
