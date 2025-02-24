@@ -81,7 +81,7 @@ class ClothEnv(FlexEnv):
                 picker_high=(0.3, 0.3, 0.3),
             )
             self.action_space = self.action_tool.action_space
-        elif action_mode == "pickandplace":
+        elif action_mode == "pickandplacepos":
             cam_pos, cam_angle = self.get_camera_params()
             self.action_tool = PickAndPlacePos(
                 (self.camera_height, self.camera_height),
@@ -95,9 +95,9 @@ class ClothEnv(FlexEnv):
                 picker_high=(0.5, 0.3, 0.5),
             )
             self.action_space = self.action_tool.action_space
-        elif action_mode == "pickandplacepos":
+        elif action_mode == "pickandplace":
             cam_pos, cam_angle = self.get_camera_params()
-            self.action_tool = PickAndPlacePos(
+            self.action_tool = PickAndPlace(
                 (self.camera_height, self.camera_height),
                 cam_pos,
                 cam_angle,
@@ -116,7 +116,7 @@ class ClothEnv(FlexEnv):
                 max_particles = 120 * 120
                 obs_dim = max_particles * 3
                 self.particle_obs_dim = obs_dim
-            if action_mode.startswith("picker"):
+            if action_mode.startswith("picker") or action_mode.startswith("pickand"):
                 obs_dim += num_picker * 3
             else:
                 raise NotImplementedError
@@ -209,7 +209,7 @@ class ClothEnv(FlexEnv):
             keypoint_pos = particle_pos[self._get_key_point_idx(), :3]
             pos = keypoint_pos
 
-        if self.action_mode in ["sphere", "picker"]:
+        if self.action_mode in ["sphere", "picker", "pickandplace", "pickandplacepos"]:
             shapes = pyflex.get_shape_states()
             shapes = np.reshape(shapes, [-1, 14])
             pos = np.concatenate([pos.flatten(), shapes[:, 0:3].flatten()])
