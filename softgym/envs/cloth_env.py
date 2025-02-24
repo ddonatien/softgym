@@ -81,6 +81,20 @@ class ClothEnv(FlexEnv):
                 picker_high=(0.3, 0.3, 0.3),
             )
             self.action_space = self.action_tool.action_space
+        elif action_mode == "pickandplace":
+            cam_pos, cam_angle = self.get_camera_params()
+            self.action_tool = PickAndPlacePos(
+                (self.camera_height, self.camera_height),
+                cam_pos,
+                cam_angle,
+                picker_threshold=picker_threshold + 0.025,
+                num_picker=num_picker,
+                particle_radius=particle_radius,
+                env=self,
+                picker_low=(-0.5, 0.0, -0.5),
+                picker_high=(0.5, 0.3, 0.5),
+            )
+            self.action_space = self.action_tool.action_space
         elif action_mode == "pickandplacepos":
             cam_pos, cam_angle = self.get_camera_params()
             self.action_tool = PickAndPlacePos(
