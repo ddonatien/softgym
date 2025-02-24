@@ -384,7 +384,7 @@ class PickAndPlacePos(PickerQPG):
         if action[-1] < 0:
             u1, v1 = action[:2]
             u1 = ((u1 + 1.) * 0.5) * self.image_size[0]
-            v1 = ((v1 + 1.) * 0.5) * self .image_size[1]
+            v1 = ((v1 + 1.) * 0.5) * self.image_size[1]
             x1, y1, z1 = super()._get_world_coor_from_image(u1, v1)
             if self.cam_pos[1] == 0.5:
                 y1 += 0.03
